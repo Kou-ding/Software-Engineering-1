@@ -1,0 +1,240 @@
+openapi: 3.0.3
+info:
+    title: 'Swagger \gnosis - OpenAPI 3.0'
+    description: "This is a sample \\gnosis Server based on the OpenAPI 3.0 specification.\nIt is actually a simulation of what \\gnosis API would be.\n\n**Contact definition in \\gnosis API:**\n- **Papadakis Konstantinos Fotios**\n  - **email:** kpapadak@ece.auth.gr\n- **Vlachakis Theodoros**\n  - **email:** vlathegeo@ece.auth.gr\n- **Kalamaras Konstantinos**\n  - **email:** kkalamar@ece.auth.gr\n- **Evangelidis Nikolaos**\n  - **email:** nievange@ece.auth.gr"
+    license:
+        name: 'Apache 2.0'
+        url: 'https://www.apache.org/licenses/LICENSE-2.0.html'
+    version: 1.0.0
+servers:
+    -
+        url: 'http://api.gnosis.software-engineering.gr:8580/v1'
+paths:
+    '/patient/{patientId}':
+        get:
+            summary: 'Retrieve Patient specified by its id.'
+            description: "This resource endpoint gives/returns the Patient specified by its id.\n"
+            operationId: getPatient
+            parameters: [{name: patientId, in: path, description: 'The id of the Patient.', required: true, style: simple, explode: false, schema: {type: string}}]
+            responses: {'200': {description: 'Successful operation. Patient''s account information is retrieved', content: {application/json: {schema: {$ref: '#/components/schemas/Patient'}}}}}
+    /deleteAccount:
+        delete:
+            summary: 'Delete a specific Patient''s account.'
+            description: "This resource endpoint gives the result of deletion of the Patient\nspecified by its.\n"
+            operationId: deletePatient
+            parameters: [{name: patientId, in: query, description: 'The id of the Patient.', required: true, style: form, explode: true, schema: {type: string}}]
+            responses: {'200': {description: 'Succesfull account deletion', content: {application/json: {schema: {$ref: '#/components/schemas/Deletion'}}}}}
+    '/patient/{patientId}/healthRequest':
+        post:
+            summary: 'Create a Health Request and add it to Patient''s account'
+            description: "FR1 - The patient must be able to describe his/her condition through text\nFR2 - The patient must be able to import images into database\nFR5 - The patient should be able to import a medical history document into database\n"
+            operationId: CreateHealthRequest
+            parameters: [{name: patientId, in: path, description: 'The id of the Patient by whom the Health Request is made.', required: true, style: simple, explode: false, schema: {type: string}}]
+            requestBody: {required: true, $ref: '#/components/requestBodies/HealthRequest'}
+            responses: {'201': {description: 'Successful operation. Patient has made his/her Health Request', content: {application/json: {schema: {$ref: '#/components/schemas/Creation'}}}}}
+    '/healthRequest/{healthRequestId}':
+        put:
+            summary: 'Update a specific Health Request for which the Patient has received a diagnosis'
+            description: "This endpoint updates the information of a specified (by its id) Health Request\nwhen a diagnosis is received for this Health Request. This endopoint is related\nto:\nFR10 - The doctor must be able to send written medical assessments of the\npatient's condition.\n"
+            operationId: updateCheckedHealthRequest
+            parameters: [{name: healthRequestId, in: path, description: 'The id of the Health Request', required: true, style: simple, explode: false, schema: {type: string}}, {name: hasReceivedDiagnosis, in: query, description: 'The boolean value that indicates if a Health Request has received a diagnosis', required: true, style: form, explode: true, schema: {type: boolean}}]
+            requestBody: {required: true, $ref: '#/components/requestBodies/CheckedHealthRequest'}
+            responses: {'200': {description: 'Successful operation. The Health Request is marked as checked by a doctor, with diagnosis', content: {application/json: {schema: {$ref: '#/components/schemas/HealthRequest'}}}}}
+    '/patient/{patientId}/medicalHistoryDocument':
+        post:
+            summary: 'Create a Medical History Document and add it to Patient''s account'
+            description: "FR5 - The patient should be able to import a medical history document into database\n"
+            operationId: CreateMedicalHistoryDocument
+            parameters: [{name: patientId, in: path, description: 'The id of the Patient who imports a Medical History Document to Database.', required: true, style: simple, explode: false, schema: {type: string}}]
+            requestBody: {required: true, $ref: '#/components/requestBodies/MedicalHistoryDocument'}
+            responses: {'201': {description: 'Successful operation. Patient has uploaded a Medical History Document', content: {application/json: {schema: {$ref: '#/components/schemas/Creation'}}}}}
+    '/patient/{patientId}/appointment':
+        post:
+            summary: 'Create an Appointment (medical appointment) that Patient requests to a doctor'
+            description: "FR4 - The patient should be able to request a medical appointment.\n"
+            operationId: CreateAppointment
+            parameters: [{name: patientId, in: path, description: 'The id of the Patient who requests the Appointment.', required: true, style: simple, explode: false, schema: {type: string}}]
+            requestBody: {required: true, $ref: '#/components/requestBodies/Appointment'}
+            responses: {'201': {description: 'Successful operation. Patient requests an Appointment.', content: {application/json: {schema: {$ref: '#/components/schemas/Appointment'}}}}}
+    /healthRequest/doctorChoice/recommendDoctors:
+        get:
+            summary: 'Retrieve a list of relevant doctors based on the doctor specialty choosen by the Patient'
+            description: "FR7 - The system must be able to recommend a list of relevant doctors.\n----------------------------------------------------------------------\nThis endpoint represents the results of the execution of an algorithm in order\nto find and return to the Patient, who makes the request, a list of relevant\ndoctors that match the specified, by the Patient, doctor specialty.\n"
+            operationId: getRecommendedDoctors
+            parameters: [{name: doctorSpecialty, in: query, description: 'The doctor specialty choosen by the Patient', required: true, style: form, explode: true, schema: {type: string}}]
+            responses: {'200': {description: 'A list of relevant doctors appears', content: {application/json: {schema: {type: array, items: {$ref: '#/components/schemas/Doctor'}}}}}}
+    /healthRequest/doctorChoice/requestSpecificDoctor:
+        get:
+            summary: 'Retrieve the doctor resulting from the algorithm that executes the doctor selection and sets the name of the doctor choosen by the Patient.'
+            description: "FR8 - The patient must be able to request a specific doctor.\n----------------------------------------------------------------------\nThis endpoint represents the results of the execution of an algorithm in order\nto define the doctor selection by the Patient who makes the request.\n"
+            operationId: requestSpecificDoctor
+            parameters: [{name: doctorName, in: query, description: 'The name of the doctor choosen by the Patient', required: true, style: form, explode: true, schema: {type: string}}]
+            responses: {'200': {description: 'Default response', content: {application/json: {schema: {$ref: '#/components/schemas/Doctor'}}}}}
+    /healthRequest/generateAIEstimation:
+        get:
+            summary: 'Retrieve the medical advice/estimation of the Patient''s Health Request generated from the AI subsystem.'
+            description: "FR3 - The patient must be able to ask the AI subsystem for advice.\n----------------------------------------------------------------------\nThis endpoint represents the results of the execution of an algorithm which is\nexecuted by AI subsystem and it generates the estimation/diagnosis of the AI\nsubsystem for a specific Health Request. The result of the execution of the \nalgorith is a Diagnosis object and this is being retrieved using the endpoint.\n"
+            operationId: getAIEstimation
+            parameters: [{name: healthRequestId, in: query, description: 'The id of the Health Request made', required: true, style: form, schema: {type: string}}, {name: patientId, in: query, description: 'The id of the Patient who made the Health Request', required: true, style: form, schema: {type: string}}]
+            responses: {'200': {description: 'The Diagnosis made by AI subsystem for the specific Health Request is retrieved', content: {application/json: {schema: {$ref: '#/components/schemas/Diagnosis'}}}}}
+    '/doctor/{doctorId}/patient/{patientId}/healthRequest/{healthRequestId}/diagnosis':
+        post:
+            summary: 'Create a medical Diagnosis related to a specified Health Request. (The doctor acts)'
+            description: "FR10 - The doctor must be able to send written medical assessments of the\npatient's condition.\n"
+            operationId: CreateDiagnosis
+            parameters: [{name: doctorId, in: path, description: 'The id of the Doctor who writes the Diagnosis', required: true, style: simple, explode: false, schema: {type: string}}, {name: patientId, in: path, description: 'The id of the Patient who made the Health Request', required: true, style: simple, explode: false, schema: {type: string}}, {name: healthRequestId, in: path, description: 'The id of the Health Request', required: true, style: simple, explode: false, schema: {type: string}}]
+            requestBody: {required: true, $ref: '#/components/requestBodies/Diagnosis'}
+            responses: {'201': {description: 'Successful operation. Doctor sends a Diagnosis related to Health Request', content: {application/json: {schema: {$ref: '#/components/schemas/Diagnosis'}}}}}
+    '/patient/{patientId}/healthRequest/{healthRequestId}/diagnosis':
+        get:
+            summary: 'Retrieve a list of Diagnoses related to the specified (by its id) Health Request that is made by a Patient specified by its id.'
+            description: "This endpoint is related to the Gherkin Feature 4 that refers to Functional\nRequirement 11 for a specific Health Request.\nFR11 - The patient must be able to view all his/her medical diagnoses.\n"
+            operationId: getDiagnosis
+            parameters: [{name: patientId, in: path, description: 'The id of the Patient', required: true, style: simple, explode: false, schema: {type: string}}, {name: healthRequestId, in: path, description: 'The id of the Health Request', required: true, style: simple, explode: false, schema: {type: string}}]
+            responses: {'200': {description: 'Successful operation. A list of Diagnoses that refer to the specified Health Request is retrieved.', content: {application/json: {schema: {$ref: '#/components/schemas/AllReceivedDiagnoses'}}}}}
+    '/patient/{patientId}/notification':
+        post:
+            summary: 'Creates a notification template'
+            description: "Creates a Notification object.\n"
+            operationId: createNotification
+            parameters: [{name: patientId, in: path, description: 'The patient''s ID', required: true, schema: {type: integer, format: int64}}]
+            requestBody: {description: 'Notification to be displayed to the patient', content: {application/json: {schema: {$ref: '#/components/schemas/Notification'}}}, required: true}
+            responses: {'201': {description: 'notification response', content: {application/json: {schema: {$ref: '#/components/schemas/Notification'}}}}, default: {description: 'unexpected error', content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}}
+    '/patient/{patientId}/notification/{notificationId}':
+        get:
+            summary: 'Returns the Notification based on a single ID'
+            description: 'Returns the Notification based on a single ID'
+            operationId: findNotificationById
+            parameters: [{name: notificationId, in: path, description: 'ID of Notification to fetch', required: true, schema: {type: integer, format: int64}}, {name: patientId, in: path, description: 'The patient''s ID', required: true, schema: {type: integer, format: int64}}]
+            responses: {'200': {description: 'notification response', content: {application/json: {schema: {$ref: '#/components/schemas/Notification'}}}}, default: {description: 'unexpected error', content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}}
+        put:
+            summary: 'Returns the Notification based on a single ID'
+            description: 'Updates the text of a Notification.'
+            operationId: updateNotificationText
+            parameters: [{name: notificationId, in: path, description: 'ID of Notification to update', required: true, schema: {type: integer, format: int64}}, {name: patientId, in: path, description: 'The patient''s ID', required: true, schema: {type: integer, format: int64}}]
+            requestBody: {description: 'Updated Notification text', required: true, content: {application/json: {schema: {type: object, properties: {text: {type: string}}}}}}
+            responses: {'200': {description: 'notification response', content: {application/json: {schema: {$ref: '#/components/schemas/Notification'}}}}, default: {description: 'unexpected error', content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}}
+        delete:
+            summary: 'Deletes a single Notification based on the ID supplied'
+            description: 'Deletes a single Notification based on the ID supplied'
+            operationId: deleteNotification
+            parameters: [{name: notificationId, in: path, description: 'ID of Notification to delete', required: true, schema: {type: integer, format: int64}}, {name: patientId, in: path, description: 'The patient''s ID', required: true, schema: {type: integer, format: int64}}]
+            responses: {'204': {description: 'Notification deleted'}, default: {description: 'unexpected error', content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}}
+    '/patient/{patientId}/fetchList':
+        get:
+            summary: 'Retrieve health requests and their diagnoses related to a patient.'
+            operationId: fetchList
+            description: "Returns a list of health requests with their corresponding diagnoses.\n"
+            parameters: [{name: patientId, in: path, description: 'The patient''s ID', required: true, schema: {type: integer, format: int64}}]
+            responses: {'200': {description: 'All health requests and their diagnoses connected to the patient''s ID.', content: {application/json: {schema: {type: array, items: {$ref: '#/components/schemas/AllRequestDiagnosisMatches'}}}}}, default: {description: 'unexpected error', content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}}
+    '/patient/{patientId}/healthRequestList':
+        get:
+            summary: 'Retrieve health requests, their diagnoses and their sequence number.'
+            operationId: getHealthRequestList
+            description: "Returns a list of health requests with their corresponding diagnoses if any and then ranks them by most recent.\n"
+            parameters: [{name: patientId, in: path, description: 'The patient''s ID', required: true, schema: {type: integer, format: int64}}]
+            responses: {'200': {description: 'A list of health requests, their diagnoses and their sequence number.', content: {application/json: {schema: {$ref: '#/components/schemas/HealthRequestList'}}}}, default: {description: 'unexpected error', content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}}
+    '/patient/{patientId}/healthRequestList/healthRequest/{healthRequestId}':
+        get:
+            summary: 'Retrieve health request and its diagnosis'
+            operationId: getRequestFromList
+            description: "Returns a health request with its corresponding diagnosis if any.\n"
+            parameters: [{name: healthRequestId, in: path, description: 'The health request''s ID', required: true, schema: {type: integer, format: int64}}, {name: patientId, in: path, description: 'The patient''s ID', required: true, schema: {type: integer, format: int64}}]
+            responses: {'200': {description: 'A health request with its diagnosis.', content: {application/json: {schema: {$ref: '#/components/schemas/RequestDiagnosisMatch'}}}}, default: {description: 'unexpected error', content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}}
+    '/patient/{patientId}/healthRequestList/healthRequest/{healthRequestId}/unfinishedHealthRequest':
+        post:
+            summary: 'Ask for a second opinion on a health request'
+            operationId: askForASecondOpinion
+            description: "Create a health request with most parameters except those related to the doctor and the health request id so that we can resubmit it to be reviewed by a different doctor.\n"
+            parameters: [{name: healthRequestId, in: path, description: 'The health request ID we want a second opinion on', required: true, schema: {type: integer, format: int64}}, {name: patientId, in: path, description: 'The patient''s ID', required: true, schema: {type: integer, format: int64}}]
+            requestBody: {description: 'The health request we want a second opinion on', required: true, content: {application/json: {schema: {$ref: '#/components/schemas/HealthRequest'}}}}
+            responses: {'201': {description: 'UnfinishedHealthRequest response', content: {application/json: {schema: {$ref: '#/components/schemas/UnfinishedHealthRequest'}}}}, default: {description: 'unexpected error', content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}}
+components:
+    schemas:
+        Patient:
+            type: object
+            properties: {patientID: {type: integer}, patientName: {type: string}, patientAge: {type: integer}, patientGender: {type: string}, patientRequests: {type: array, items: {$ref: '#/components/schemas/HealthRequest'}}, patientMedicalHistoryDocuments: {type: array, items: {$ref: '#/components/schemas/MedicalHistoryDocument'}}, patientReceivedDiagnoses: {type: array, items: {$ref: '#/components/schemas/Diagnosis'}}}
+            xml: {name: Patient}
+        HealthRequest:
+            type: object
+            properties: {HealthRequestID: {type: integer}, descriptionText: {type: object, properties: {text: {type: string}}}, image: {type: object, required: [fileName, fileType, data], properties: {fileName: {type: string}, fileType: {type: string}, data: {type: string, format: binary}}}, objMedicalHistoryDocument: {type: object, required: [fileName, fileType, data], properties: {fileName: {type: string}, fileType: {type: string}, data: {type: string, format: binary}}}, patientID: {type: integer}, doctorID: {type: integer}, hasReceivedDiagnosis: {type: boolean, default: false}}
+            xml: {name: HealthRequest}
+        MedicalHistoryDocument:
+            type: object
+            properties: {MedHistoryDocID: {type: integer}, document: {type: object, required: [fileName, fileType, data], properties: {fileName: {type: string}, fileType: {type: string}, data: {type: string, format: binary}}}, documentName: {type: string}, patientID: {type: integer}}
+            xml: {name: MedicalHistoryDocument}
+        Appointment:
+            type: object
+            properties: {doctorID: {type: integer}, date: {type: integer}, time: {type: integer}, patientID: {type: integer}, appointmentStatus: {type: string}, appointmentID: {type: integer}}
+            xml: {name: Appointment}
+        Diagnosis:
+            type: object
+            properties: {diagnosisText: {type: object, properties: {text: {type: string}}}}
+            xml: {name: Diagnosis}
+        Doctor:
+            type: object
+            properties: {name: {type: string}, specialty: {type: string}, doctorID: {type: integer}, certificate: {type: object, required: [fileName, fileType, data], properties: {fileName: {type: string}, fileType: {type: string}, data: {type: string, format: binary}}}}
+        Notification:
+            type: object
+            required: [NotificationText, NotificationId]
+            properties: {NotificationText: {type: string}, NotificationId: {type: integer, format: int64}}
+        HealthRequestList:
+            type: array
+            items: {type: object, properties: {SeqId: {description: 'The number that defines the sequence of the health requests inside the list.', type: integer, format: int64}, HealthRequest: {$ref: '#/components/schemas/AllHealthRequests'}, Diagnosis: {$ref: '#/components/schemas/AllReceivedDiagnoses'}}}
+        RequestDiagnosisMatch:
+            type: array
+            items: {type: object, properties: {HealthRequest: {$ref: '#/components/schemas/HealthRequest'}, Diagnosis: {$ref: '#/components/schemas/Diagnosis'}}}
+        UnfinishedHealthRequest:
+            type: object
+            properties: {descriptionText: {type: object, properties: {text: {type: string}}}, image: {type: object, required: [fileName, fileType, data], properties: {fileName: {type: string}, fileType: {type: string}, data: {type: string, format: binary}}}, objMedicalHistoryDocument: {type: object, required: [fileName, fileType, data], properties: {fileName: {type: string}, fileType: {type: string}, data: {type: string, format: binary}}}, patientID: {type: integer}}
+            xml: {name: UnfinishedHealthRequest}
+        Deletion:
+            required: [code, message]
+            type: object
+            properties: {message: {type: string, example: 'Successfully Deleted!'}}
+        Creation:
+            required: [code, message]
+            type: object
+            properties: {message: {type: string, example: 'Successfully Created!'}}
+        AllPatients:
+            type: array
+            items: {$ref: '#/components/schemas/Patient'}
+        AllHealthRequests:
+            type: array
+            items: {$ref: '#/components/schemas/HealthRequest'}
+        AllMedicalHistoryDocuments:
+            type: array
+            items: {$ref: '#/components/schemas/MedicalHistoryDocument'}
+        AllReceivedDiagnoses:
+            type: array
+            items: {$ref: '#/components/schemas/Diagnosis'}
+        AllRequestDiagnosisMatches:
+            type: array
+            items: {$ref: '#/components/schemas/RequestDiagnosisMatch'}
+        Error:
+            required: [code, message]
+            type: object
+            properties: {code: {type: integer, format: int32}, message: {type: string}}
+    requestBodies:
+        HealthRequest:
+            description: 'HealthRequest model'
+            content: {application/json: {schema: {$ref: '#/components/schemas/HealthRequest'}}}
+            required: true
+        Patient:
+            description: 'Patient model'
+            content: {application/json: {schema: {$ref: '#/components/schemas/Patient'}}}
+            required: true
+        CheckedHealthRequest:
+            description: 'A request (body parameters) to update the descriptionText property of a HealthRequest'
+            content: {application/json: {schema: {type: object, properties: {text: {type: string}}}}}
+            required: true
+        MedicalHistoryDocument:
+            description: 'MedicalHistoryDocument model'
+            content: {application/json: {schema: {$ref: '#/components/schemas/MedicalHistoryDocument'}}}
+            required: true
+        Appointment:
+            description: 'Appointment model'
+            content: {application/json: {schema: {$ref: '#/components/schemas/Appointment'}}}
+        Diagnosis:
+            description: 'Diagnossis model'
+            content: {application/json: {schema: {$ref: '#/components/schemas/Diagnosis'}}}
